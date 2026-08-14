@@ -21,7 +21,11 @@ class Command(BaseCommand):
             for row in rows:
                 _, created = Book.objects.update_or_create(
                     url=row["url"],
-                    defaults={"title": row["title"], "price": row["price"]}
+                    defaults={
+                        "title": row["title"], 
+                        "price": row["price"],
+                        "image_url": row["image_url"],
+                        }
                 )
                 if created:
                     created_count += 1
