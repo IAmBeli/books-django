@@ -8,11 +8,8 @@ HEADERS = {
 }
 
 
-def scrape_page(url):
-    response = requests.get(url, headers=HEADERS)
-    response.encoding = "utf-8"
-    soup = BeautifulSoup(response.text, "html.parser")
-
+def parse_books(html, base_url):
+    soup = BeautifulSoup(html, "html.parser")
     rows = []
     for book in soup.select("article.product_pod"):
         link = book.select_one("h3 a")
@@ -20,8 +17,13 @@ def scrape_page(url):
         price = book.select_one(".price_color")
         rows.append({
             "title": link["title"],
-            "url": urljoin(url, link["href"]),
-            "image_url": urljoin(url, image["src"]),
-            "price": Decimal(price.text.replace("£", "")),
+            "url": urljoin(base_url, link["href"]),
+            "image_url": urljoin(base_url, image["src"]),
+            "price": Decimal(price.text.replace("£", ""))
         })
     return rows
+
+def scrape_page(url):
+    response = requests.get(url, headers=HEADERS)
+    response.encoding = "utf-8"
+    return parse_books(response.text, url)

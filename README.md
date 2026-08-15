@@ -116,6 +116,18 @@ The page is at `http://localhost:8000`, the admin at `http://localhost:8000/admi
 
 Requires Python 3.10 or newer.
 
+## Tests
+
+```bash
+pytest
+```
+
+The suite covers three layers. Parsing is tested against a fixed HTML fragment rather than the live site: `scrape_page` was split into a thin network wrapper and a pure `parse_books(html, base_url)`, so the parsing logic can be checked offline, instantly, and without touching anyone's server. The model tests confirm that re-scraping a book updates it rather than inserting a duplicate. The view tests use Django's test client to check pagination, including that a malformed `?page=` value falls back gracefully instead of raising.
+
+The management command is tested with the network call patched out, which is also the only way to assert that running the scraper twice leaves the database unchanged.
+
+pytest-django creates and destroys a separate test database, so none of this touches development data.
+
 ## Possible extensions
 
 - Collect the remaining fields: rating, availability, category
