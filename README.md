@@ -128,6 +128,31 @@ The management command is tested with the network call patched out, which is als
 
 pytest-django creates and destroys a separate test database, so none of this touches development data.
 
+## Running with Docker
+
+The whole stack — application and database — starts with one command:
+
+```bash
+docker compose up
+```
+
+This builds the image, waits for PostgreSQL to accept connections, applies migrations, collects static files and starts gunicorn on port 8000.
+
+Fill the database and create an admin account once the stack is running:
+
+```bash
+docker compose exec web python manage.py scrape
+docker compose exec web python manage.py createsuperuser
+```
+
+Database credentials and `SECRET_KEY` come from `.env`, which compose substitutes into the container's environment. The file is deliberately excluded from both the image and the repository, so nothing inside the image contains a password — see `.env.example` for the variables that need setting.
+
+Two details in the compose file are worth pointing out. The application reaches the database at the host `db`, which is the service name: compose puts both containers on one network where service names resolve as addresses, and `localhost` inside a container refers only to that container. And the database has no `ports` section, so it is reachable from the application but not from outside.
+
+Postgres data lives in a named volume rather than inside the container, so `docker compose down` does not destroy it.
+
+Static files are served by whitenoise rather than by the development server. Gunicorn does not serve static files at all, and neither does Django outside `runserver` — without whitenoise the CSS would 404 in exactly this setup.
+
 ## Possible extensions
 
 - Collect the remaining fields: rating, availability, category
